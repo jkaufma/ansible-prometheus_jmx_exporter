@@ -1,3 +1,4 @@
+.vscode
 **~*.retry
 Dockerfile.*
 requirements.yml
