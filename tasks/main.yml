@@ -1,4 +1,28 @@
 ---
+- name: get stats of {{ prometheus_jmx_exporter_parent_install_dir }}
+  stat:
+    path: '{{ prometheus_jmx_exporter_parent_install_dir }}'
+  register: st
+
+- name: determine user/group to set for files & folders
+  set_fact:
+    actual_owner: "{{ prometheus_jmx_exporter_install_owner | default(st.stat.pw_name) }}"
+    actual_group: "{{ prometheus_jmx_exporter_install_group | default(st.stat.gr_name) }}"
+
+- name: print owner of {{ prometheus_jmx_exporter_parent_install_dir }}
+  debug:
+    msg: 'owner: {{ st.stat.pw_name }} / group: {{ st.stat.gr_name }} / actual owner: {{ actual_owner }} / actual group: {{ actual_group }}'
+
+- name: creating {{ prometheus_jmx_exporter_parent_install_dir }}/{{ prometheus_jmx_exporter_home_dir }}
+  become: '{{ prometheus_jmx_exporter_elevate }}'
+  become_user: root
+  file:
+    path: '{{ prometheus_jmx_exporter_parent_install_dir }}/{{ prometheus_jmx_exporter_home_dir }}'
+    state: directory
+    mode: 0755
+    owner: '{{ actual_owner }}'
+    group: '{{ actual_group }}'
+
 - name: creating {{ prometheus_jmx_exporter_install_dir }}
   become: '{{ prometheus_jmx_exporter_elevate }}'
   become_user: root
@@ -6,6 +30,19 @@
     path: '{{ prometheus_jmx_exporter_install_dir }}'
     state: directory
     mode: 0755
+    owner: '{{ actual_owner }}'
+    group: '{{ actual_group }}'
+
+- name: creating {{ prometheus_jmx_exporter_config_dir }}
+  become: '{{ prometheus_jmx_exporter_elevate }}'
+  become_user: root
+  file:
+    path: '{{ prometheus_jmx_exporter_config_dir }}'
+    state: directory
+    mode: 0755
+    owner: '{{ actual_owner }}'
+    group: '{{ actual_group }}'
+
 - name: downloading {{ prometheus_jmx_exporter_url }} to {{ prometheus_jmx_exporter_install_jar }}
   become: '{{ prometheus_jmx_exporter_elevate }}'
   become_user: root
@@ -13,10 +50,28 @@
     url: '{{ prometheus_jmx_exporter_url }}'
     dest: '{{ prometheus_jmx_exporter_install_jar }}'
     mode: 0644
+    owner: '{{ actual_owner }}'
+    group: '{{ actual_group }}'
+
 - name: linking {{ prometheus_jmx_exporter_link }} to {{ prometheus_jmx_exporter_install_jar }}
   become: '{{ prometheus_jmx_exporter_elevate }}'
   become_user: root
   file:
-    src: '{{ prometheus_jmx_exporter_install_jar }}'
+    src: '{{ prometheus_jmx_exporter_jar }}'
     dest: '{{ prometheus_jmx_exporter_link }}'
     state: link
+    owner: '{{ actual_owner }}'
+    group: '{{ actual_group }}'
+
+- name: optionally copying configuration files to config directory
+  become: '{{ prometheus_jmx_exporter_elevate }}'
+  become_user: root
+  copy:
+    src: '{{ item }}'
+    dest: '{{ prometheus_jmx_exporter_config_dir }}'
+    mode: 0644
+    owner: '{{ actual_owner }}'
+    group: '{{ actual_group }}'
+  with_fileglob:
+    - '{{ prometheus_jmx_exporter_config_files_src }}/*'
+  when: prometheus_jmx_exporter_config_files_src is defined

@@ -4,7 +4,16 @@ prometheus_jmx_exporter_ver: 0.20.0
 prometheus_jmx_exporter_mirror: https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent
 
 prometheus_jmx_exporter_parent_install_dir: /usr/local
+prometheus_jmx_exporter_home_dir: jmx_prometheus_javaagent
+prometheus_jmx_exporter_install_dir: '{{ prometheus_jmx_exporter_parent_install_dir }}/{{ prometheus_jmx_exporter_home_dir }}/bin'
+prometheus_jmx_exporter_config_dir: '{{ prometheus_jmx_exporter_parent_install_dir }}/{{ prometheus_jmx_exporter_home_dir }}/config'
 prometheus_jmx_exporter_elevate: true
+
+## optional settings
+#
+# prometheus_jmx_exporter_install_owner: ''
+# prometheus_jmx_exporter_install_group: ''
+# prometheus_jmx_exporter_config_files_src: ''
 
 prometheus_jmx_exporter_checksums:
   # https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0.13.0/jmx_prometheus_javaagent-0.13.0.jar
